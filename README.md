@@ -15,18 +15,17 @@ $ rails console
 Hirb.enable
 => true
 
-User.joins(:status).select("users.country AS user_country", "statuses.status AS user_status", "COUNT(*) AS count").where("user_status = 'Active'").group("user_country")
+User.joins(:status).select("users.country AS user_country", "statuses.status AS user_status", "COUNT(*) AS count", "ROUND((COUNT(*)*100.0/(SELECT COUNT(*) FROM statuses WHERE status = 'Active')), 2) AS percentage").where("user_status = 'Active'").group("user_country")
 
-  User Load (0.3ms)  SELECT users.country AS user_country, statuses.status AS user_status, COUNT(*) AS count FROM "users" INNER JOIN "statuses" ON "statuses"."user_id" = "users"."id" WHERE (user_status = 'Active') GROUP BY user_country
-
-+----+--------------+-------------+-------+
-| id | user_country | user_status | count |
-+----+--------------+-------------+-------+
-|    | Brazil       | Active      | 7     |
-|    | China        | Active      | 9     |
-|    | India        | Active      | 11    |
-|    | USA          | Active      | 7     |
-+----+--------------+-------------+-------+
+  User Load (0.3ms)  SELECT users.country AS user_country, statuses.status AS user_status, COUNT(*) AS count, ROUND((COUNT(*)*100.0/(SELECT COUNT(*) FROM statuses WHERE status = 'Active')), 2) AS percentage FROM "users" INNER JOIN "statuses" ON "statuses"."user_id" = "users"."id" WHERE (user_status = 'Active') GROUP BY user_country
++----+--------------+-------------+-------+------------+
+| id | user_country | user_status | count | percentage |
++----+--------------+-------------+-------+------------+
+|    | Brazil       | Active      | 7     | 20.59      |
+|    | China        | Active      | 9     | 26.47      |
+|    | India        | Active      | 11    | 32.35      |
+|    | USA          | Active      | 7     | 20.59      |
++----+--------------+-------------+-------+------------+
 
 Status.where(status:"Active").count
 => 34
@@ -37,5 +36,5 @@ Status.where(status:"Active").count
 This is what you need:
 
 ```
-User.joins(:status).select("users.country AS user_country", "statuses.status AS user_status", "COUNT(*) AS count").where("user_status = 'Active'").group("user_country")
+User.joins(:status).select("users.country AS user_country", "statuses.status AS user_status", "COUNT(*) AS count", "ROUND((COUNT(*)*100.0/(SELECT COUNT(*) FROM statuses WHERE status = 'Active')), 2) AS percentage").where("user_status = 'Active'").group("user_country")
 ```
